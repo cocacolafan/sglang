@@ -1020,7 +1020,7 @@ class Qwen3VLForConditionalGeneration(nn.Module):
                     f"(3, seq_len) positions, but got {positions.size()}"
                 )
 
-        hidden_states = general_mm_embed_routine(
+        hidden_states, aux_hidden_states = general_mm_embed_routine(
             input_ids=input_ids,
             forward_batch=forward_batch,
             language_model=self.model,
@@ -1037,6 +1037,7 @@ class Qwen3VLForConditionalGeneration(nn.Module):
                     hidden_states,
                     self.lm_head,
                     forward_batch,
+                    aux_hidden_states=aux_hidden_states,
                 )
             else:
                 return self.pooler(hidden_states, forward_batch)
@@ -1126,6 +1127,21 @@ class Qwen3VLForConditionalGeneration(nn.Module):
 
                 weight_loader = getattr(param, "weight_loader", default_weight_loader)
                 weight_loader(param, loaded_weight)
+
+    def set_eagle3_layers_to_capture(self, layer_ids: Optional[List[int]] = None):
+        if not self.pp_group.is_last_rank:
+            return
+
+        self.capture_aux_hidden_states = True
+        if layer_ids is None:
+            num_layers = self.config.num_hidden_layers
+            self.model.layers_to_capture = [
+                2,
+                num_layers // 2,
+                num_layers - 3,
+            ]  # Specific layers for EAGLE3 support
+        else:
+            self.model.layers_to_capture = [val + 1 for val in layer_ids]
 
 
 EntryClass = Qwen3VLForConditionalGeneration

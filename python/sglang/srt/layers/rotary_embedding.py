@@ -1937,7 +1937,7 @@ class MRotaryEmbedding(RotaryEmbedding):
                         "qwen3_5_moe",
                     ):
                         t_index = (
-                            torch.arange(llm_grid_t, device=position_ids.device)
+                            torch.arange(llm_grid_t)
                             .view(-1, 1)
                             .expand(llm_grid_t, llm_grid_h * llm_grid_w)
                             .reshape(-1)
@@ -1945,13 +1945,13 @@ class MRotaryEmbedding(RotaryEmbedding):
                     else:
                         raise RuntimeError(f"Unimplemented model type: {model_type}")
                     h_index = (
-                        torch.arange(llm_grid_h, device=position_ids.device)
+                        torch.arange(llm_grid_h)
                         .view(1, -1, 1)
                         .expand(llm_grid_t, llm_grid_h, llm_grid_w)
                         .reshape(-1)
                     )
                     w_index = (
-                        torch.arange(llm_grid_w, device=position_ids.device)
+                        torch.arange(llm_grid_w)
                         .view(1, 1, -1)
                         .expand(llm_grid_t, llm_grid_h, llm_grid_w)
                         .reshape(-1)
